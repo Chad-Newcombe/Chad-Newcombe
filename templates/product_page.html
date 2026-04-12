@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ title }} — {{ subtitle }}</title>
+  <meta name="description" content="{{ tagline }}" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            serif: ['Playfair Display', 'Georgia', 'serif'],
+          },
+          colors: {
+            brand: {
+              50:  '#f5f3ff',
+              100: '#ede9fe',
+              200: '#ddd6fe',
+              300: '#c4b5fd',
+              400: '#a78bfa',
+              500: '#8b5cf6',
+              600: '#7c3aed',
+              700: '#6d28d9',
+              800: '#5b21b6',
+              900: '#4c1d95',
+              950: '#2e1065',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    html { scroll-behavior: smooth; }
+    .gradient-text {
+      background: linear-gradient(135deg, #c4b5fd 0%, #818cf8 50%, #38bdf8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-bg {
+      background: radial-gradient(ellipse at 70% 50%, #4c1d95 0%, #1e1b4b 45%, #0f0a1e 100%);
+    }
+    .card-hover {
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .card-hover:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px rgba(109, 40, 217, 0.25);
+    }
+    .check-icon::before {
+      content: '✓';
+      display: inline-block;
+      width: 1.5rem;
+      height: 1.5rem;
+      background: linear-gradient(135deg, #7c3aed, #4f46e5);
+      border-radius: 50%;
+      color: white;
+      font-size: 0.75rem;
+      font-weight: 700;
+      line-height: 1.5rem;
+      text-align: center;
+      flex-shrink: 0;
+      margin-right: 0.75rem;
+    }
+  </style>
+</head>
+<body class="font-sans bg-white text-gray-900 antialiased">
+
+  <!-- ── NAV ──────────────────────────────────────────────────────────────── -->
+  <nav class="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
+    <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+      <span class="font-serif font-bold text-brand-700 text-lg">{{ title | truncate(30, True, '…') }}</span>
+      <a href="#pricing"
+         class="bg-brand-600 hover:bg-brand-700 text-white px-5 py-2 rounded-full text-sm font-semibold transition-colors shadow-sm">
+        Get Instant Access
+      </a>
+    </div>
+  </nav>
+
+  <!-- ── HERO ─────────────────────────────────────────────────────────────── -->
+  <section class="hero-bg pt-32 pb-24 px-6 text-white overflow-hidden relative">
+    <!-- Decorative glow -->
+    <div class="absolute top-0 right-0 w-96 h-96 bg-brand-600/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none"></div>
+    <div class="absolute bottom-0 left-0 w-72 h-72 bg-indigo-600/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4 pointer-events-none"></div>
+
+    <div class="max-w-6xl mx-auto relative">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+
+        <!-- Left: Copy -->
+        <div>
+          <span class="inline-block bg-brand-500/20 border border-brand-400/30 text-brand-200 px-4 py-1.5 rounded-full text-sm font-medium mb-6">
+            {{ product_type }} — Instant Download
+          </span>
+          <h1 class="font-serif text-5xl lg:text-6xl font-black leading-tight mb-6">
+            {{ hero_headline }}
+          </h1>
+          <p class="text-xl text-brand-100 leading-relaxed mb-8">
+            {{ hero_subheadline }}
+          </p>
+
+          <!-- Stats row -->
+          {% if social_proof_stats %}
+          <div class="flex flex-wrap gap-4 mb-10">
+            {% for stat in social_proof_stats %}
+            <div class="bg-white/10 border border-white/20 rounded-xl px-4 py-2 text-sm font-medium text-white">
+              {{ stat }}
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          <!-- CTA -->
+          <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+            <a href="#pricing"
+               class="bg-white text-brand-900 hover:bg-brand-50 px-8 py-4 rounded-2xl font-bold text-lg transition-colors shadow-lg shadow-brand-900/30">
+              Get Instant Access — ${{ "%.0f"|format(price) }}
+            </a>
+            <span class="text-brand-300 text-sm">Instant digital download · Lifetime access</span>
+          </div>
+        </div>
+
+        <!-- Right: Product Mockup -->
+        <div class="flex justify-center lg:justify-end">
+          <div class="relative w-72 lg:w-80">
+            <!-- Shadow/glow layers -->
+            <div class="absolute inset-0 bg-brand-600/40 rounded-3xl blur-2xl scale-95 translate-y-4"></div>
+            <div class="absolute inset-0 bg-indigo-600/30 rounded-3xl blur-xl scale-90 translate-y-2"></div>
+            <!-- Cover card -->
+            <div class="relative bg-gradient-to-br from-brand-600 via-brand-700 to-indigo-800 rounded-3xl p-8 border border-brand-400/30 shadow-2xl">
+              <div class="text-brand-200 text-xs font-semibold uppercase tracking-widest mb-4">{{ product_type }}</div>
+              <h2 class="font-serif text-3xl font-black text-white leading-tight mb-3">{{ title }}</h2>
+              <p class="text-brand-200 text-sm leading-relaxed">{{ subtitle }}</p>
+              <div class="mt-8 pt-6 border-t border-brand-400/30">
+                <div class="text-white/60 text-xs">{{ sections | length }} sections</div>
+                <div class="text-white font-bold text-2xl mt-1">${{ "%.0f"|format(price) }}</div>
+              </div>
+            </div>
+            <!-- Floating badge -->
+            <div class="absolute -top-4 -right-4 bg-yellow-400 text-yellow-900 rounded-2xl px-4 py-2 font-bold text-sm shadow-lg rotate-3">
+              Instant Download
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── VALUE PROPS ────────────────────────────────────────────────────────── -->
+  {% if value_propositions %}
+  <section class="py-20 px-6 bg-gray-50">
+    <div class="max-w-6xl mx-auto">
+      <h2 class="text-center font-serif text-4xl font-bold text-gray-900 mb-4">Why This Changes Everything</h2>
+      <p class="text-center text-gray-500 text-lg mb-14 max-w-2xl mx-auto">
+        {{ tagline }}
+      </p>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-{% if value_propositions|length >= 4 %}4{% else %}{{ value_propositions|length }}{% endif %} gap-6">
+        {% for prop in value_propositions %}
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 card-hover">
+          <div class="w-10 h-10 bg-brand-100 rounded-xl flex items-center justify-center mb-4">
+            <div class="w-5 h-5 bg-brand-600 rounded-full"></div>
+          </div>
+          <p class="font-semibold text-gray-900 leading-snug">{{ prop }}</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- ── WHAT'S INSIDE ──────────────────────────────────────────────────────── -->
+  <section class="py-20 px-6 bg-white">
+    <div class="max-w-5xl mx-auto">
+      <div class="text-center mb-14">
+        <h2 class="font-serif text-4xl font-bold text-gray-900 mb-4">Everything That's Inside</h2>
+        <p class="text-gray-500 text-lg">Everything you need. Nothing you don't.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {% if feature_bullets %}
+        {% for bullet in feature_bullets %}
+        <div class="flex items-start gap-3 p-4 rounded-xl hover:bg-gray-50 transition-colors">
+          <div class="w-6 h-6 bg-gradient-to-br from-brand-500 to-indigo-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+            <svg class="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+            </svg>
+          </div>
+          <span class="text-gray-700 leading-relaxed">{{ bullet }}</span>
+        </div>
+        {% endfor %}
+        {% endif %}
+      </div>
+    </div>
+  </section>
+
+  <!-- ── TABLE OF CONTENTS ──────────────────────────────────────────────────── -->
+  {% if sections %}
+  <section class="py-20 px-6 bg-brand-950 text-white">
+    <div class="max-w-4xl mx-auto">
+      <div class="text-center mb-14">
+        <h2 class="font-serif text-4xl font-bold mb-4">Table of Contents</h2>
+        <p class="text-brand-300">{{ sections | length }} in-depth sections</p>
+      </div>
+      <div class="space-y-3">
+        {% for section in sections %}
+        <div class="flex items-center gap-5 p-5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl transition-colors">
+          <span class="text-brand-400 font-mono font-bold text-lg w-8 flex-shrink-0">{{ loop.index | string | rjust(2, '0') }}</span>
+          <span class="font-semibold text-white text-lg">{{ section.title }}</span>
+          <span class="ml-auto text-brand-400 text-sm flex-shrink-0">{{ section.word_count }} words</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- ── WHO IT'S FOR ───────────────────────────────────────────────────────── -->
+  <section class="py-20 px-6 bg-white">
+    <div class="max-w-5xl mx-auto">
+      <div class="text-center mb-14">
+        <h2 class="font-serif text-4xl font-bold text-gray-900 mb-4">This Is Made For You If…</h2>
+        <p class="text-gray-500">{{ audience_persona }}</p>
+      </div>
+      {% if audience_desires %}
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        {% for desire in audience_desires %}
+        <div class="bg-gradient-to-br from-brand-50 to-indigo-50 border border-brand-100 rounded-2xl p-6">
+          <div class="text-2xl mb-3">✦</div>
+          <p class="text-gray-800 font-medium leading-relaxed">{{ desire }}</p>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+  </section>
+
+  <!-- ── PRICING ────────────────────────────────────────────────────────────── -->
+  <section id="pricing" class="py-20 px-6 bg-gray-50">
+    <div class="max-w-xl mx-auto">
+      <div class="text-center mb-10">
+        <h2 class="font-serif text-4xl font-bold text-gray-900 mb-4">Get Instant Access Today</h2>
+        <p class="text-gray-500">One-time payment. Lifetime access. Instant download.</p>
+      </div>
+
+      <div class="bg-white rounded-3xl shadow-xl border border-brand-100 overflow-hidden">
+        <!-- Price header -->
+        <div class="bg-gradient-to-br from-brand-600 to-indigo-700 p-8 text-center text-white">
+          <div class="text-brand-200 text-sm font-medium uppercase tracking-wider mb-2">Complete Package</div>
+          <div class="font-serif text-7xl font-black">${{ "%.0f"|format(price) }}</div>
+          <div class="text-brand-200 mt-2">One-time · Instant Download</div>
+        </div>
+
+        <!-- Includes list -->
+        <div class="p-8">
+          <div class="space-y-3 mb-8">
+            {% if feature_bullets %}
+            {% for bullet in feature_bullets[:6] %}
+            <div class="flex items-center gap-3">
+              <div class="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <svg class="w-3 h-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                </svg>
+              </div>
+              <span class="text-gray-700 text-sm">{{ bullet }}</span>
+            </div>
+            {% endfor %}
+            {% endif %}
+            <div class="flex items-center gap-3">
+              <div class="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <svg class="w-3 h-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                </svg>
+              </div>
+              <span class="text-gray-700 text-sm font-medium">30-day money-back guarantee</span>
+            </div>
+          </div>
+
+          <a href="#"
+             class="block w-full bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white text-center py-4 rounded-2xl font-bold text-lg transition-all shadow-lg shadow-brand-200 hover:shadow-xl hover:shadow-brand-300 hover:-translate-y-0.5">
+            Get Instant Access — ${{ "%.0f"|format(price) }}
+          </a>
+          <p class="text-center text-gray-400 text-xs mt-4">
+            Secure checkout · PDF delivered instantly · 30-day guarantee
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FAQ ────────────────────────────────────────────────────────────────── -->
+  {% if faq %}
+  <section class="py-20 px-6 bg-white">
+    <div class="max-w-3xl mx-auto">
+      <div class="text-center mb-14">
+        <h2 class="font-serif text-4xl font-bold text-gray-900 mb-4">Frequently Asked Questions</h2>
+      </div>
+      <div class="space-y-4">
+        {% for item in faq %}
+        <details class="group bg-gray-50 rounded-2xl border border-gray-100 overflow-hidden">
+          <summary class="flex justify-between items-center p-6 cursor-pointer list-none font-semibold text-gray-900 hover:text-brand-700 transition-colors">
+            {{ item.question }}
+            <svg class="w-5 h-5 text-gray-400 group-open:rotate-180 transition-transform flex-shrink-0 ml-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </summary>
+          <div class="px-6 pb-6 text-gray-600 leading-relaxed border-t border-gray-100 pt-4">
+            {{ item.answer }}
+          </div>
+        </details>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- ── FINAL CTA ──────────────────────────────────────────────────────────── -->
+  <section class="py-24 px-6 hero-bg text-white text-center">
+    <div class="max-w-2xl mx-auto">
+      <h2 class="font-serif text-5xl font-black mb-6 leading-tight">
+        Ready to <span class="gradient-text">Get Started?</span>
+      </h2>
+      <p class="text-brand-200 text-xl mb-10 leading-relaxed">
+        {{ tagline }}
+      </p>
+      <a href="#pricing"
+         class="inline-block bg-white text-brand-900 hover:bg-brand-50 px-10 py-5 rounded-2xl font-bold text-xl transition-colors shadow-2xl shadow-brand-900/40">
+        Get Instant Access — ${{ "%.0f"|format(price) }}
+      </a>
+      <p class="text-brand-400 text-sm mt-5">30-day money-back guarantee · No questions asked</p>
+    </div>
+  </section>
+
+  <!-- ── FOOTER ─────────────────────────────────────────────────────────────── -->
+  <footer class="bg-gray-950 text-gray-500 py-10 px-6 text-center text-sm">
+    <p class="font-serif text-white font-bold text-lg mb-2">{{ title }}</p>
+    <p class="mb-4">{{ subtitle }}</p>
+    <p class="text-gray-600 text-xs">Digital download. Instant access after purchase.</p>
+  </footer>
+
+</body>
+</html>
