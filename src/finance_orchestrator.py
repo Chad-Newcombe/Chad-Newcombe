@@ -43,18 +43,29 @@ class FinanceOrchestrator:
         statement_files: list[str],
         credit_card_configs: list[dict] | None = None,
         monthly_payment_budget: float | None = None,
+        projected_income: float | None = None,
     ) -> FinancialReport:
         """Run the full personal finance analysis pipeline."""
         credit_card_configs = credit_card_configs or []
 
         # ── Step 1: Parse CSVs ────────────────────────────────────────────────
         self._log_step("Parsing statements")
+        cc_file_names = {cfg["name"].lower() for cfg in credit_card_configs}
         statements: list[RawStatement] = []
+        credit_card_source_files: set[str] = set()  # track which source files are CC statements
         for f in statement_files:
+            stem_lower = Path(f).stem.lower()
+            # Mark as credit card if filename matches a --cc name
+            is_cc = any(cc_name in stem_lower or stem_lower in cc_name for cc_name in cc_file_names)
             try:
-                stmt = parse_csv_statement(f)
+                stmt = parse_csv_statement(f, is_credit_card=is_cc)
                 statements.append(stmt)
-                console.print(f"  [dim]Loaded {len(stmt.transactions)} transactions from {stmt.account_name}[/dim]")
+                if is_cc:
+                    credit_card_source_files.add(Path(f).name)
+                console.print(
+                    f"  [dim]Loaded {len(stmt.transactions)} transactions from "
+                    f"{stmt.account_name}{'  [credit card]' if is_cc else ''}[/dim]"
+                )
             except Exception as exc:
                 console.print(f"  [yellow]Warning:[/yellow] Could not parse {f}: {exc}")
 
@@ -114,7 +125,9 @@ class FinanceOrchestrator:
 
         # ── Step 3: AI categorization ─────────────────────────────────────────
         self._log_step(f"Categorizing {len(all_transactions)} transactions with AI")
-        all_transactions = self.categorization_agent.run_categorization(all_transactions)
+        all_transactions = self.categorization_agent.run_categorization(
+            all_transactions, credit_card_sources=credit_card_source_files
+        )
 
         # Push categorized transactions back into account objects
         txn_by_source: dict[str, list[Transaction]] = {}
@@ -127,7 +140,11 @@ class FinanceOrchestrator:
 
         # ── Step 4: Compute financial snapshot ───────────────────────────────
         self._log_step("Computing financial snapshot")
-        snapshot = compute_financial_snapshot(bank_accounts, credit_cards, all_transactions)
+        if projected_income is not None:
+            console.print(f"  [dim]Using projected monthly income: ${projected_income:,.2f}[/dim]")
+        snapshot = compute_financial_snapshot(
+            bank_accounts, credit_cards, all_transactions, projected_income=projected_income
+        )
 
         # ── Step 5: Debt payoff plans ─────────────────────────────────────────
         avalanche_plan = None

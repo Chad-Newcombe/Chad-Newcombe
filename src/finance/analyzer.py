@@ -45,8 +45,14 @@ def compute_financial_snapshot(
     bank_accounts: list[BankAccount],
     credit_cards: list[CreditCardAccount],
     transactions: list[Transaction],
+    projected_income: float | None = None,
 ) -> FinancialSnapshot:
-    """Aggregate transactions into a FinancialSnapshot."""
+    """Aggregate transactions into a FinancialSnapshot.
+
+    If projected_income is given it overrides the historical average for all
+    forward-looking calculations (budgets, payoff plans, monthly action plans).
+    The historical average is always preserved for reference.
+    """
     if not transactions:
         dates = ["0000-01", "0000-01"]
     else:
@@ -73,8 +79,11 @@ def compute_financial_snapshot(
         monthly_summaries.append(summary)
 
     num_months = max(len(monthly_summaries), 1)
-    avg_income = sum(s.total_income for s in monthly_summaries) / num_months
+    historical_avg_income = sum(s.total_income for s in monthly_summaries) / num_months
     avg_expenses = sum(s.total_expenses for s in monthly_summaries) / num_months
+
+    effective_income = projected_income if projected_income is not None else historical_avg_income
+    income_source = "projected" if projected_income is not None else "historical"
 
     all_expenses = sum(abs(t.amount) for t in transactions if t.amount < 0 and not t.is_transfer)
     spending_by_cat = _group_by_category(
@@ -86,9 +95,11 @@ def compute_financial_snapshot(
     return FinancialSnapshot(
         total_liquid_assets=round(sum(b.current_balance for b in bank_accounts), 2),
         total_credit_card_debt=round(sum(c.current_balance for c in credit_cards), 2),
-        total_monthly_income=round(avg_income, 2),
+        total_monthly_income=round(effective_income, 2),
+        historical_monthly_income=round(historical_avg_income, 2),
+        income_source=income_source,
         total_monthly_expenses=round(avg_expenses, 2),
-        net_monthly_cash_flow=round(avg_income - avg_expenses, 2),
+        net_monthly_cash_flow=round(effective_income - avg_expenses, 2),
         monthly_summaries=monthly_summaries,
         bank_accounts=bank_accounts,
         credit_cards=credit_cards,
@@ -251,7 +262,11 @@ def compute_budget_framework(
     snapshot: FinancialSnapshot,
     framework: str = "50/30/20",
 ) -> BudgetPlan:
-    """Build a 50/30/20 budget plan comparing current spending to targets."""
+    """Build a 50/30/20 budget plan comparing current spending to targets.
+
+    Uses snapshot.total_monthly_income which is projected income when provided,
+    giving accurate forward-looking budget targets.
+    """
     income = snapshot.total_monthly_income
     if income <= 0:
         income = 1.0  # avoid division by zero
@@ -260,9 +275,19 @@ def compute_budget_framework(
     wants_target = income * 0.30
     savings_debt_target = income * 0.20
 
-    current_needs = 0.0
-    current_wants = 0.0
-    current_savings_debt = 0.0
+    # Pre-compute bucket totals before assigning proportions (avoids running-total bug)
+    needs_total = sum(
+        s.monthly_average for s in snapshot.spending_by_category
+        if s.category in _NEEDS_CATEGORIES and s.category != TransactionCategory.DEBT_PAYMENT
+    )
+    savings_debt_total = sum(
+        s.monthly_average for s in snapshot.spending_by_category
+        if s.category in _SAVINGS_DEBT_CATEGORIES
+    )
+    wants_total = sum(
+        s.monthly_average for s in snapshot.spending_by_category
+        if s.category not in _NEEDS_CATEGORIES and s.category not in _SAVINGS_DEBT_CATEGORIES
+    )
 
     category_budgets: list[BudgetCategory] = []
 
@@ -272,21 +297,18 @@ def compute_budget_framework(
 
         if cat in _NEEDS_CATEGORIES and cat != TransactionCategory.DEBT_PAYMENT:
             bucket = "needs"
-            current_needs += avg
+            bucket_total = needs_total
+            bucket_target = needs_target
         elif cat in _SAVINGS_DEBT_CATEGORIES:
             bucket = "savings_debt"
-            current_savings_debt += avg
+            bucket_total = savings_debt_total
+            bucket_target = savings_debt_target
         else:
             bucket = "wants"
-            current_wants += avg
+            bucket_total = wants_total
+            bucket_target = wants_target
 
-        # Proportional target within each bucket
-        if cat in _NEEDS_CATEGORIES and cat != TransactionCategory.DEBT_PAYMENT:
-            recommended = needs_target * (avg / max(current_needs, 0.01))
-        elif cat in _SAVINGS_DEBT_CATEGORIES:
-            recommended = savings_debt_target * (avg / max(current_savings_debt, 0.01))
-        else:
-            recommended = wants_target * (avg / max(current_wants, 0.01))
+        recommended = bucket_target * (avg / max(bucket_total, 0.01))
 
         category_budgets.append(BudgetCategory(
             category=cat,
@@ -296,6 +318,9 @@ def compute_budget_framework(
             difference=round(recommended - avg, 2),
         ))
 
+    current_needs = needs_total
+    current_wants = wants_total
+    current_savings_debt = savings_debt_total
     surplus = income - current_needs - current_wants - current_savings_debt
 
     return BudgetPlan(

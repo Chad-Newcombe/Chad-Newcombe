@@ -101,6 +101,18 @@ def analyze(
             help="Total monthly dollars available for debt repayment. Auto-calculated if omitted.",
         ),
     ] = None,
+    income: Annotated[
+        float | None,
+        typer.Option(
+            "--income", "-i",
+            help=(
+                "Your projected monthly take-home income. "
+                "If omitted, the historical average from your statements is used. "
+                "Use this when your income has recently changed or statements don't "
+                "reflect your current pay (e.g. new job, raise, side income)."
+            ),
+        ),
+    ] = None,
     api_key: Annotated[
         str | None,
         typer.Option("--api-key", "-k", help="Anthropic API key.", envvar="ANTHROPIC_API_KEY"),
@@ -113,7 +125,7 @@ def analyze(
     Example:
         python main.py analyze checking.csv visa.csv amex.csv \\
             --cc "Visa:21.99:25" --cc "Amex:18.99:35:3200" \\
-            --budget 600
+            --income 4500 --budget 600
 
     \b
     Outputs saved to outputs/finance-YYYY-MM-DD/:
@@ -153,6 +165,10 @@ def analyze(
     console.print(f"  Statements: {', '.join(str(s) for s in statements)}")
     if cc_configs:
         console.print(f"  Credit cards: {', '.join(c['name'] for c in cc_configs)}")
+    if income:
+        console.print(f"  Projected income: ${income:,.2f}/mo")
+    else:
+        console.print("  Income: using historical average from statements")
     if monthly_budget:
         console.print(f"  Monthly debt budget: ${monthly_budget:,.2f}")
     console.print()
@@ -163,6 +179,7 @@ def analyze(
             statement_files=[str(s) for s in statements],
             credit_card_configs=cc_configs,
             monthly_payment_budget=monthly_budget,
+            projected_income=income,
         )
     except KeyboardInterrupt:
         console.print("\n[yellow]Interrupted.[/yellow]")

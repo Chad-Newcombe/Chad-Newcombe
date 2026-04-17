@@ -78,23 +78,52 @@ class CategorizationAgent(BaseAgent):
             return {"status": "saved", "count": len(inputs["categorizations"])}
         raise NotImplementedError(f"Unhandled tool: {name}")
 
-    def run_categorization(self, transactions: list[Transaction]) -> list[Transaction]:
-        """Categorize all transactions in batches; return updated list."""
+    def run_categorization(
+        self,
+        transactions: list[Transaction],
+        credit_card_sources: set[str] | None = None,
+    ) -> list[Transaction]:
+        """Categorize all transactions in batches; return updated list.
+
+        credit_card_sources: set of source_file names that came from credit card
+        statements. Passed to the AI so it knows those files contain purchases only
+        (no payroll/income), preventing misclassification of large deposits.
+        """
+        credit_card_sources = credit_card_sources or set()
         result = list(transactions)
 
         for batch_start in range(0, len(transactions), _BATCH_SIZE):
             batch = transactions[batch_start: batch_start + _BATCH_SIZE]
             self._store["categorizations"] = []
 
+            # Determine if any transactions in this batch are from credit cards
+            cc_files_in_batch = {t.source_file for t in batch if t.source_file in credit_card_sources}
+
             batch_json = json.dumps(
                 [
-                    {"id": i, "date": t.date, "description": t.description, "amount": t.amount}
+                    {
+                        "id": i,
+                        "date": t.date,
+                        "description": t.description,
+                        "amount": t.amount,
+                        "account_type": "credit_card" if t.source_file in credit_card_sources else "bank",
+                    }
                     for i, t in enumerate(batch)
                 ],
                 indent=2,
             )
+
+            cc_hint = ""
+            if cc_files_in_batch:
+                cc_hint = (
+                    "\nNote: Transactions with account_type='credit_card' are purchases "
+                    "on a credit card — they will never be income. Payments TO a credit card "
+                    "(e.g. 'PAYMENT THANK YOU', 'AUTOPAY') should be is_transfer=true. "
+                    "All other credit card charges are expenses in their respective category.\n"
+                )
+
             prompt = (
-                f"Please categorize these {len(batch)} transactions. "
+                f"Please categorize these {len(batch)} transactions.{cc_hint}"
                 "Call save_categorized_transactions once with ALL categorizations.\n\n"
                 f"```json\n{batch_json}\n```"
             )

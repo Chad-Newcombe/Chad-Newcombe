@@ -81,7 +81,9 @@ class MonthlySpendingSummary(BaseModel):
 class FinancialSnapshot(BaseModel):
     total_liquid_assets: float
     total_credit_card_debt: float
-    total_monthly_income: float
+    total_monthly_income: float        # projected if provided, else historical average
+    historical_monthly_income: float   # always the raw average from statements
+    income_source: str                 # "projected" or "historical"
     total_monthly_expenses: float
     net_monthly_cash_flow: float
     monthly_summaries: list[MonthlySpendingSummary] = Field(default_factory=list)

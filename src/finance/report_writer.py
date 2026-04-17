@@ -23,6 +23,16 @@ def write_markdown_report(report: FinancialReport, output_dir: Path) -> Path:
         lines += ["## Executive Summary", "", report.executive_summary, ""]
 
     # Financial Snapshot
+    income_label = (
+        "Projected Monthly Income"
+        if snap.income_source == "projected"
+        else "Avg Monthly Income (historical)"
+    )
+    income_note = (
+        f" *(historical avg: ${snap.historical_monthly_income:,.2f})*"
+        if snap.income_source == "projected"
+        else ""
+    )
     lines += [
         "## Financial Snapshot",
         "",
@@ -30,7 +40,7 @@ def write_markdown_report(report: FinancialReport, output_dir: Path) -> Path:
         "|--------|--------|",
         f"| Liquid Assets (Bank) | ${snap.total_liquid_assets:,.2f} |",
         f"| Total Credit Card Debt | ${snap.total_credit_card_debt:,.2f} |",
-        f"| Avg Monthly Income | ${snap.total_monthly_income:,.2f} |",
+        f"| {income_label} | ${snap.total_monthly_income:,.2f}{income_note} |",
         f"| Avg Monthly Expenses | ${snap.total_monthly_expenses:,.2f} |",
         f"| Net Monthly Cash Flow | ${snap.net_monthly_cash_flow:,.2f} |",
         "",

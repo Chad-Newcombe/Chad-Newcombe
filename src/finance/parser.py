@@ -28,8 +28,18 @@ _DATE_FORMATS = [
 ]
 
 
-def parse_csv_statement(file_path: str, account_name: str | None = None) -> RawStatement:
-    """Parse a bank or credit card CSV export into a RawStatement."""
+def parse_csv_statement(
+    file_path: str,
+    account_name: str | None = None,
+    is_credit_card: bool = False,
+) -> RawStatement:
+    """Parse a bank or credit card CSV export into a RawStatement.
+
+    For credit card CSVs, pass is_credit_card=True so sign conventions are
+    normalized: purchases become negative (money out), credits/payments positive.
+    Most banks export charges as negative already; this corrects the minority that
+    export charges as positive numbers.
+    """
     path = Path(file_path)
     name = account_name or path.stem.replace("_", " ").replace("-", " ").title()
 
@@ -49,6 +59,17 @@ def parse_csv_statement(file_path: str, account_name: str | None = None) -> RawS
                 transactions.append(txn)
         except Exception:
             continue
+
+    # Credit card sign normalization: if the sum of positive amounts exceeds the
+    # absolute sum of negative amounts, charges are exported as positive numbers
+    # (some banks do this). Flip all signs so purchases become negative.
+    if is_credit_card and transactions:
+        total_positive = sum(t.amount for t in transactions if t.amount > 0)
+        total_negative = abs(sum(t.amount for t in transactions if t.amount < 0))
+        if total_positive > total_negative:
+            transactions = [
+                t.model_copy(update={"amount": -t.amount}) for t in transactions
+            ]
 
     closing_balance: float | None = None
     if transactions and transactions[-1].balance is not None:
