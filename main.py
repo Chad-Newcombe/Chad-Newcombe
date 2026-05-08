@@ -189,6 +189,31 @@ def analyze(
 
 
 @app.command()
+def serve(
+    host: Annotated[str, typer.Option("--host", help="Host to bind to.")] = "127.0.0.1",
+    port: Annotated[int, typer.Option("--port", "-p", help="Port to listen on.")] = 5000,
+    debug: Annotated[bool, typer.Option("--debug", help="Enable Flask debug mode.")] = False,
+) -> None:
+    """
+    Start the personal finance web dashboard.
+
+    \b
+    Example:
+        python main.py serve
+        python main.py serve --port 8080
+        python main.py serve --host 0.0.0.0 --port 5000
+    """
+    from web.app import create_app
+
+    flask_app = create_app()
+    console.print()
+    console.print("[bold cyan]Personal Finance Dashboard[/bold cyan]")
+    console.print(f"  Open [underline]http://{host}:{port}[/underline] in your browser")
+    console.print("  Press Ctrl+C to stop\n")
+    flask_app.run(host=host, port=port, debug=debug, use_reloader=False)
+
+
+@app.command()
 def types() -> None:
     """List all supported product types."""
     from rich.table import Table

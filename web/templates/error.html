@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Error — Finance Analyzer{% endblock %}
+{% block content %}
+<div class="max-w-xl mx-auto text-center py-20">
+  <div class="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-red-500/20">
+    <svg class="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+    </svg>
+  </div>
+  <h1 class="text-2xl font-bold text-white mb-3">Analysis Failed</h1>
+  <p class="text-slate-400 mb-6">{{ error }}</p>
+  <a href="/" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-800
+                     hover:bg-slate-700 text-white border border-slate-700 transition-colors">
+    ← Try Again
+  </a>
+</div>
+{% endblock %}

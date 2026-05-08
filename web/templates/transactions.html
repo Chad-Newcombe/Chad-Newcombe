@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+{% block title %}Transactions — Finance Analyzer{% endblock %}
+
+{% block content %}
+<div x-data="{
+  search: '',
+  filterCat: 'all',
+  filterAccount: 'all',
+  showTransfers: false,
+  transactions: {{ transactions | tojson }},
+  get filtered() {
+    return this.transactions.filter(t => {
+      if (!this.showTransfers && t.is_transfer) return false;
+      if (this.filterCat !== 'all' && t.category !== this.filterCat) return false;
+      if (this.filterAccount !== 'all' && t.source_file !== this.filterAccount) return false;
+      if (this.search) {
+        const q = this.search.toLowerCase();
+        return t.description.toLowerCase().includes(q) || (t.category || '').includes(q);
+      }
+      return true;
+    });
+  },
+  get categories() {
+    const cats = [...new Set(this.transactions.map(t => t.category).filter(Boolean))];
+    return cats.sort();
+  },
+  get accounts() {
+    return [...new Set(this.transactions.map(t => t.source_file).filter(Boolean))];
+  },
+  get totalIncome() {
+    return this.filtered.filter(t => t.amount > 0 && !t.is_transfer)
+                        .reduce((s, t) => s + t.amount, 0);
+  },
+  get totalExpenses() {
+    return this.filtered.filter(t => t.amount < 0 && !t.is_transfer)
+                        .reduce((s, t) => s + Math.abs(t.amount), 0);
+  }
+}">
+
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-white">Transactions</h1>
+      <p class="text-slate-400 mt-0.5" x-text="`${filtered.length} transactions shown`"></p>
+    </div>
+    <a href="/dashboard/{{ run_id }}"
+       class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm
+              bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white
+              border border-slate-700 transition-colors">
+      ← Back to Dashboard
+    </a>
+  </div>
+
+  <!-- Summary row -->
+  <div class="grid grid-cols-3 gap-4 mb-6">
+    <div class="card p-4 text-center">
+      <p class="text-slate-500 text-xs uppercase tracking-wider mb-1">Income</p>
+      <p class="text-emerald-400 font-bold text-lg" x-text="'$' + totalIncome.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})"></p>
+    </div>
+    <div class="card p-4 text-center">
+      <p class="text-slate-500 text-xs uppercase tracking-wider mb-1">Expenses</p>
+      <p class="text-red-400 font-bold text-lg" x-text="'$' + totalExpenses.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})"></p>
+    </div>
+    <div class="card p-4 text-center">
+      <p class="text-slate-500 text-xs uppercase tracking-wider mb-1">Net</p>
+      <p class="font-bold text-lg"
+         :class="totalIncome - totalExpenses >= 0 ? 'text-emerald-400' : 'text-red-400'"
+         x-text="'$' + (totalIncome - totalExpenses).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})"></p>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="card p-4 mb-6 flex flex-wrap gap-3 items-center">
+    <!-- Search -->
+    <div class="relative flex-1 min-w-48">
+      <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500"
+           fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+      </svg>
+      <input type="text" x-model="search" placeholder="Search descriptions…"
+             class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-9 pr-3 py-2 text-sm
+                    text-white placeholder-slate-600
+                    focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20">
+    </div>
+
+    <!-- Category filter -->
+    <select x-model="filterCat"
+            class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300
+                   focus:outline-none focus:border-emerald-500/50">
+      <option value="all">All Categories</option>
+      <template x-for="cat in categories" :key="cat">
+        <option :value="cat" x-text="cat.replace(/_/g,' ')"></option>
+      </template>
+    </select>
+
+    <!-- Account filter -->
+    <select x-model="filterAccount"
+            class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300
+                   focus:outline-none focus:border-emerald-500/50">
+      <option value="all">All Accounts</option>
+      <template x-for="acct in accounts" :key="acct">
+        <option :value="acct" x-text="acct"></option>
+      </template>
+    </select>
+
+    <!-- Transfers toggle -->
+    <label class="flex items-center gap-2 text-sm text-slate-400 cursor-pointer select-none">
+      <input type="checkbox" x-model="showTransfers"
+             class="w-4 h-4 rounded accent-emerald-500">
+      Show transfers
+    </label>
+  </div>
+
+  <!-- Table -->
+  <div class="card overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-slate-900/80">
+          <tr class="text-left text-slate-500 text-xs uppercase tracking-wider">
+            <th class="px-4 py-3">Date</th>
+            <th class="px-4 py-3">Description</th>
+            <th class="px-4 py-3">Category</th>
+            <th class="px-4 py-3">Account</th>
+            <th class="px-4 py-3 text-right">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          <template x-for="(t, i) in filtered" :key="i">
+            <tr class="border-t border-slate-800/50 hover:bg-white/[0.02] transition-colors">
+              <td class="px-4 py-3 text-slate-400 whitespace-nowrap" x-text="t.date"></td>
+              <td class="px-4 py-3 text-slate-200 max-w-xs">
+                <span x-text="t.description"></span>
+                <span x-show="t.is_transfer"
+                      class="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-xs
+                             bg-slate-700 text-slate-400">transfer</span>
+              </td>
+              <td class="px-4 py-3">
+                <span x-show="t.category"
+                      class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border"
+                      :style="`background:${catColor(t.category)}18; color:${catColor(t.category)}; border-color:${catColor(t.category)}40`"
+                      x-text="(t.category || '').replace(/_/g,' ')"></span>
+                <span x-show="!t.category" class="text-slate-600 text-xs">—</span>
+              </td>
+              <td class="px-4 py-3 text-slate-500 text-xs max-w-32 truncate" x-text="t.source_file"></td>
+              <td class="px-4 py-3 text-right font-semibold whitespace-nowrap"
+                  :class="t.amount >= 0 ? 'text-emerald-400' : 'text-slate-200'"
+                  x-text="(t.amount >= 0 ? '+' : '') + '$' + Math.abs(t.amount).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})"></td>
+            </tr>
+          </template>
+          <tr x-show="filtered.length === 0">
+            <td colspan="5" class="px-4 py-12 text-center text-slate-600">
+              No transactions match your filters.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function catColor(cat) {
+  const COLORS = {
+    income:'#10b981', housing:'#6366f1', groceries:'#f59e0b', dining:'#ef4444',
+    utilities:'#3b82f6', transport:'#8b5cf6', entertainment:'#ec4899',
+    healthcare:'#14b8a6', clothing:'#f97316', debt_payment:'#dc2626',
+    savings:'#22c55e', subscriptions:'#a855f7', other:'#6b7280',
+  };
+  return COLORS[cat] || '#6b7280';
+}
+</script>
+{% endblock %}
