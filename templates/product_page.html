@@ -211,7 +211,7 @@
       <div class="space-y-3">
         {% for section in sections %}
         <div class="flex items-center gap-5 p-5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl transition-colors">
-          <span class="text-brand-400 font-mono font-bold text-lg w-8 flex-shrink-0">{{ loop.index | string | rjust(2, '0') }}</span>
+          <span class="text-brand-400 font-mono font-bold text-lg w-8 flex-shrink-0">{{ '%02d' % loop.index }}</span>
           <span class="font-semibold text-white text-lg">{{ section.title }}</span>
           <span class="ml-auto text-brand-400 text-sm flex-shrink-0">{{ section.word_count }} words</span>
         </div>
