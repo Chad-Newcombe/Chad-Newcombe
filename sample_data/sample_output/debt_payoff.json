@@ -1,0 +1,152 @@
+{
+  "avalanche": {
+    "strategy": "avalanche",
+    "monthly_payment_budget": 355.29,
+    "total_months": 8,
+    "total_interest_paid": 186.12,
+    "payoff_schedule": [
+      {
+        "month_number": 1,
+        "account_name": "Visa",
+        "payment_amount": 355.29,
+        "principal_paid": 311.31,
+        "interest_paid": 43.98,
+        "remaining_balance": 2088.69
+      },
+      {
+        "month_number": 2,
+        "account_name": "Visa",
+        "payment_amount": 355.29,
+        "principal_paid": 317.01,
+        "interest_paid": 38.28,
+        "remaining_balance": 1771.68
+      },
+      {
+        "month_number": 3,
+        "account_name": "Visa",
+        "payment_amount": 355.29,
+        "principal_paid": 322.82,
+        "interest_paid": 32.47,
+        "remaining_balance": 1448.85
+      },
+      {
+        "month_number": 4,
+        "account_name": "Visa",
+        "payment_amount": 355.29,
+        "principal_paid": 328.74,
+        "interest_paid": 26.55,
+        "remaining_balance": 1120.11
+      },
+      {
+        "month_number": 5,
+        "account_name": "Visa",
+        "payment_amount": 355.29,
+        "principal_paid": 334.76,
+        "interest_paid": 20.53,
+        "remaining_balance": 785.35
+      },
+      {
+        "month_number": 6,
+        "account_name": "Visa",
+        "payment_amount": 355.29,
+        "principal_paid": 340.9,
+        "interest_paid": 14.39,
+        "remaining_balance": 444.45
+      },
+      {
+        "month_number": 7,
+        "account_name": "Visa",
+        "payment_amount": 355.29,
+        "principal_paid": 347.15,
+        "interest_paid": 8.14,
+        "remaining_balance": 97.3
+      },
+      {
+        "month_number": 8,
+        "account_name": "Visa",
+        "payment_amount": 99.09,
+        "principal_paid": 97.3,
+        "interest_paid": 1.78,
+        "remaining_balance": 0.0
+      }
+    ],
+    "payoff_order": [
+      "Visa"
+    ]
+  },
+  "snowball": {
+    "strategy": "snowball",
+    "monthly_payment_budget": 355.29,
+    "total_months": 8,
+    "total_interest_paid": 186.12,
+    "payoff_schedule": [
+      {
+        "month_number": 1,
+        "account_name": "Visa",
+        "payment_amount": 355.29,
+        "principal_paid": 311.31,
+        "interest_paid": 43.98,
+        "remaining_balance": 2088.69
+      },
+      {
+        "month_number": 2,
+        "account_name": "Visa",
+        "payment_amount": 355.29,
+        "principal_paid": 317.01,
+        "interest_paid": 38.28,
+        "remaining_balance": 1771.68
+      },
+      {
+        "month_number": 3,
+        "account_name": "Visa",
+        "payment_amount": 355.29,
+        "principal_paid": 322.82,
+        "interest_paid": 32.47,
+        "remaining_balance": 1448.85
+      },
+      {
+        "month_number": 4,
+        "account_name": "Visa",
+        "payment_amount": 355.29,
+        "principal_paid": 328.74,
+        "interest_paid": 26.55,
+        "remaining_balance": 1120.11
+      },
+      {
+        "month_number": 5,
+        "account_name": "Visa",
+        "payment_amount": 355.29,
+        "principal_paid": 334.76,
+        "interest_paid": 20.53,
+        "remaining_balance": 785.35
+      },
+      {
+        "month_number": 6,
+        "account_name": "Visa",
+        "payment_amount": 355.29,
+        "principal_paid": 340.9,
+        "interest_paid": 14.39,
+        "remaining_balance": 444.45
+      },
+      {
+        "month_number": 7,
+        "account_name": "Visa",
+        "payment_amount": 355.29,
+        "principal_paid": 347.15,
+        "interest_paid": 8.14,
+        "remaining_balance": 97.3
+      },
+      {
+        "month_number": 8,
+        "account_name": "Visa",
+        "payment_amount": 99.09,
+        "principal_paid": 97.3,
+        "interest_paid": 1.78,
+        "remaining_balance": 0.0
+      }
+    ],
+    "payoff_order": [
+      "Visa"
+    ]
+  }
+}

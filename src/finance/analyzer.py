@@ -1,7 +1,6 @@
 """Pure-Python financial analysis: spending aggregation, debt payoff, budget framework."""
 
 from __future__ import annotations
-import copy
 from collections import defaultdict
 
 from src.models.finance import (
@@ -172,8 +171,6 @@ def _simulate_payoff(
     def sort_key(s: CardState) -> float:
         return -s.apr if strategy == "avalanche" else s.balance
 
-    states.sort(key=sort_key)
-
     schedule: list[DebtPayoffMonth] = []
     payoff_order: list[str] = []
     total_interest = 0.0
@@ -181,59 +178,55 @@ def _simulate_payoff(
 
     while any(s.balance > 0.001 for s in states) and month < 360:
         month += 1
-        remaining_budget = monthly_budget
+        active = [s for s in states if s.balance > 0.001]
 
-        # Accrue interest
-        for s in states:
-            if s.balance > 0.001:
-                s.balance += s.balance * s.monthly_rate
-
-        # Pay minimums on all active cards
-        for s in states:
-            if s.balance <= 0.001:
-                continue
-            payment = min(s.min_payment, s.balance)
-            interest = s.balance * s.monthly_rate / (1 + s.monthly_rate)  # approx
-            interest = min(interest, payment)
-            principal = payment - interest
-            s.balance -= payment
-            remaining_budget -= payment
+        # 1. Accrue interest on each active card (all accrued interest is interest paid
+        #    over the life of the debt, so we count it here at accrual time — this keeps
+        #    the identity: total_interest == total_payments - original_principal).
+        interest_by_card: dict[str, float] = {}
+        for s in active:
+            interest = s.balance * s.monthly_rate
+            interest_by_card[s.name] = interest
+            s.balance += interest
             total_interest += interest
+
+        # 2. Pay the minimum (capped at balance) on every active card.
+        remaining_budget = monthly_budget
+        payment_by_card: dict[str, float] = {}
+        for s in active:
+            pay = min(s.min_payment, s.balance)
+            payment_by_card[s.name] = pay
+            remaining_budget -= pay
+
+        # 3. Cascade any surplus to cards in priority order (highest APR / smallest
+        #    balance first). If surplus clears the top card, the rest flows to the next.
+        if remaining_budget > 0.001:
+            for s in sorted(active, key=sort_key):
+                balance_after_min = s.balance - payment_by_card[s.name]
+                if balance_after_min <= 0.001 or remaining_budget <= 0.001:
+                    continue
+                extra = min(remaining_budget, balance_after_min)
+                payment_by_card[s.name] += extra
+                remaining_budget -= extra
+
+        # 4. Apply payments and record the per-card schedule entry for this month.
+        for s in active:
+            pay = payment_by_card[s.name]
+            interest = interest_by_card[s.name]
+            s.balance -= pay
+            if s.balance < 0.001:
+                s.balance = 0.0
+                payoff_order.append(s.name)
             schedule.append(DebtPayoffMonth(
                 month_number=month,
                 account_name=s.name,
-                payment_amount=round(payment, 2),
-                principal_paid=round(principal, 2),
+                payment_amount=round(pay, 2),
+                principal_paid=round(pay - interest, 2),
                 interest_paid=round(interest, 2),
-                remaining_balance=round(max(s.balance, 0.0), 2),
+                remaining_balance=round(s.balance, 2),
             ))
-            if s.balance < 0.001:
-                s.balance = 0.0
-                if s.name not in payoff_order:
-                    payoff_order.append(s.name)
-                remaining_budget += s.min_payment  # freed minimum rolls into surplus
 
-        # Apply surplus to priority card
-        if remaining_budget > 0.001:
-            active = [s for s in states if s.balance > 0.001]
-            active.sort(key=sort_key)
-            if active:
-                target = active[0]
-                extra = min(remaining_budget, target.balance)
-                target.balance -= extra
-                # Update last schedule entry for this card this month
-                for entry in reversed(schedule):
-                    if entry.month_number == month and entry.account_name == target.name:
-                        entry.payment_amount = round(entry.payment_amount + extra, 2)
-                        entry.principal_paid = round(entry.principal_paid + extra, 2)
-                        entry.remaining_balance = round(max(target.balance, 0.0), 2)
-                        break
-                if target.balance < 0.001:
-                    target.balance = 0.0
-                    if target.name not in payoff_order:
-                        payoff_order.append(target.name)
-
-    # Any cards still not in payoff_order (edge case — never paid off)
+    # Any cards still not paid off (e.g. budget too small to ever clear them).
     for s in states:
         if s.name not in payoff_order:
             payoff_order.append(s.name)
