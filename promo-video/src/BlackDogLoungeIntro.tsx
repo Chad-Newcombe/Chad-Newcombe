@@ -18,10 +18,10 @@ const PALETTE = {
   shine: "#e8c878",
 };
 
-const FULL_TEXT = "The Black Dog Lounge";
-const TEXT_BOX_WIDTH = 900;
+const FULL_TEXT = "Welcome to the Black Dog Lounge";
+const TEXT_BOX_WIDTH = 1380;
 const REVEAL_START = 6;
-const REVEAL_DURATION = 70;
+const REVEAL_DURATION = 95;
 
 const flowEase = Easing.bezier(0.45, 0, 0.2, 1);
 
@@ -44,7 +44,7 @@ export const BlackDogLoungeIntro: React.FC = () => {
 
   const revealEndsAt = REVEAL_START + REVEAL_DURATION;
 
-  const lineWidth = interpolate(frame, [revealEndsAt + 8, revealEndsAt + 34], [0, 360], {
+  const lineWidth = interpolate(frame, [revealEndsAt + 8, revealEndsAt + 34], [0, 480], {
     easing: Easing.bezier(0.16, 1, 0.3, 1),
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
