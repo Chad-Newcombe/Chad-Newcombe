@@ -18,33 +18,79 @@ const PALETTE = {
   shine: "#e8c878",
 };
 
-const FULL_TEXT = "Welcome to the Black Dog Lounge";
-const TEXT_BOX_WIDTH = 1380;
-const REVEAL_START = 6;
-const REVEAL_DURATION = 95;
-
 const flowEase = Easing.bezier(0.45, 0, 0.2, 1);
 
-export const BlackDogLoungeIntro: React.FC = () => {
-  const frame = useCurrentFrame();
+const LINE_1 = { text: "Welcome to", fontSize: 56, boxWidth: 420, boxHeight: 80, start: 6, duration: 36 };
+const LINE_2_START = LINE_1.start + LINE_1.duration + 14;
+const LINE_2 = {
+  text: "The Black Dog Lounge",
+  fontSize: 108,
+  boxWidth: 1020,
+  boxHeight: 150,
+  start: LINE_2_START,
+  duration: 80,
+};
 
-  const revealWidth = interpolate(
-    frame,
-    [REVEAL_START, REVEAL_START + REVEAL_DURATION],
-    [0, TEXT_BOX_WIDTH],
-    { easing: flowEase, extrapolateLeft: "clamp", extrapolateRight: "clamp" },
-  );
+const FlowingLine: React.FC<{
+  frame: number;
+  text: string;
+  fontSize: number;
+  boxWidth: number;
+  boxHeight: number;
+  start: number;
+  duration: number;
+}> = ({ frame, text, fontSize, boxWidth, boxHeight, start, duration }) => {
+  const revealWidth = interpolate(frame, [start, start + duration], [0, boxWidth], {
+    easing: flowEase,
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
 
   const tipOpacity = interpolate(
     frame,
-    [REVEAL_START, REVEAL_START + 6, REVEAL_START + REVEAL_DURATION - 10, REVEAL_START + REVEAL_DURATION],
+    [start, start + 6, start + duration - 10, start + duration],
     [0, 1, 1, 0],
     { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
   );
 
-  const revealEndsAt = REVEAL_START + REVEAL_DURATION;
+  return (
+    <div style={{ position: "relative", width: boxWidth, height: boxHeight }}>
+      <div style={{ position: "absolute", inset: 0, overflow: "hidden", width: revealWidth }}>
+        <div
+          style={{
+            width: boxWidth,
+            fontFamily,
+            fontSize,
+            color: PALETTE.text,
+            whiteSpace: "nowrap",
+            lineHeight: 1.3,
+          }}
+        >
+          {text}
+        </div>
+      </div>
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: revealWidth - 2,
+          width: 18,
+          height: boxHeight,
+          opacity: tipOpacity,
+          background: `radial-gradient(circle, ${PALETTE.shine} 0%, rgba(232,200,120,0) 75%)`,
+          filter: "blur(2px)",
+        }}
+      />
+    </div>
+  );
+};
 
-  const lineWidth = interpolate(frame, [revealEndsAt + 8, revealEndsAt + 34], [0, 480], {
+export const BlackDogLoungeIntro: React.FC = () => {
+  const frame = useCurrentFrame();
+
+  const line2EndsAt = LINE_2.start + LINE_2.duration;
+
+  const lineWidth = interpolate(frame, [line2EndsAt + 8, line2EndsAt + 34], [0, 480], {
     easing: Easing.bezier(0.16, 1, 0.3, 1),
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
@@ -66,57 +112,12 @@ export const BlackDogLoungeIntro: React.FC = () => {
           background: `radial-gradient(circle at 50% 55%, ${PALETTE.glow} 0%, rgba(201,162,91,0) 60%)`,
         }}
       />
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-        }}
-      >
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+        <FlowingLine frame={frame} {...LINE_1} />
+        <FlowingLine frame={frame} {...LINE_2} />
         <div
           style={{
-            position: "relative",
-            width: TEXT_BOX_WIDTH,
-            height: 130,
-          }}
-        >
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              overflow: "hidden",
-              width: revealWidth,
-            }}
-          >
-            <div
-              style={{
-                width: TEXT_BOX_WIDTH,
-                fontFamily,
-                fontSize: 96,
-                color: PALETTE.text,
-                whiteSpace: "nowrap",
-                lineHeight: 1.3,
-              }}
-            >
-              {FULL_TEXT}
-            </div>
-          </div>
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              left: revealWidth - 2,
-              width: 18,
-              height: 130,
-              opacity: tipOpacity,
-              background: `radial-gradient(circle, ${PALETTE.shine} 0%, rgba(232,200,120,0) 75%)`,
-              filter: "blur(2px)",
-            }}
-          />
-        </div>
-        <div
-          style={{
-            marginTop: 6,
+            marginTop: 4,
             width: lineWidth,
             height: 2,
             backgroundColor: PALETTE.shine,
