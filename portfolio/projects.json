@@ -1,0 +1,123 @@
+{
+  "portfolio": "Newcombe Product Portfolio",
+  "updated": "2026-07-20",
+  "statusDefinitions": {
+    "deploy_ready": "Production build exists; final verification and hosting remain.",
+    "mvp_built": "Working MVP or executable system exists; launch hardening remains.",
+    "build_package": "Detailed build package exists but repository/runtime must be confirmed.",
+    "in_development": "Product is actively being designed or coded but is not launch-ready.",
+    "concept": "Defined idea without a verified working codebase."
+  },
+  "projects": [
+    {
+      "name": "Verity",
+      "aliases": ["CalJust", "CalJustProject"],
+      "type": "Web application",
+      "repository": "Chad-Newcombe/CalJustProject",
+      "status": "deploy_ready",
+      "priority": 1,
+      "nextMilestone": "Run lint, tests, corpus validation, production build, and deploy static MVP.",
+      "deploymentTarget": "Vercel or equivalent static hosting"
+    },
+    {
+      "name": "Digital Product Agents",
+      "aliases": [],
+      "type": "Python multi-agent product pipeline",
+      "repository": "Chad-Newcombe/Chad-Newcombe",
+      "status": "mvp_built",
+      "priority": 2,
+      "nextMilestone": "Verify end-to-end generation, package environment setup, and choose CLI or hosted interface launch.",
+      "deploymentTarget": "Local CLI initially; hosted worker/dashboard later"
+    },
+    {
+      "name": "StatementFlow",
+      "aliases": [],
+      "type": "Document extraction web application",
+      "repository": null,
+      "status": "build_package",
+      "priority": 3,
+      "nextMilestone": "Locate or recreate repository from MVP package, run locally, test extraction, and deploy.",
+      "deploymentTarget": "Vercel"
+    },
+    {
+      "name": "Cash Command",
+      "aliases": [],
+      "type": "Local-first desktop finance application",
+      "repository": null,
+      "status": "build_package",
+      "priority": 4,
+      "nextMilestone": "Create repository from Codex handoff, implement staged tasks, and produce signed desktop build.",
+      "deploymentTarget": "Desktop release"
+    },
+    {
+      "name": "Dish",
+      "aliases": ["RecipeVault"],
+      "type": "Social recipe application",
+      "repository": null,
+      "status": "in_development",
+      "priority": 5,
+      "nextMilestone": "Centralize current code and verify one complete video-link-to-recipe workflow.",
+      "deploymentTarget": "Web/mobile MVP"
+    },
+    {
+      "name": "Vesta",
+      "aliases": [],
+      "type": "Airbnb spatial walkthrough application",
+      "repository": null,
+      "status": "in_development",
+      "priority": 6,
+      "nextMilestone": "Centralize prototype and prove photo-set-to-walkthrough output pipeline.",
+      "deploymentTarget": "Web application"
+    },
+    {
+      "name": "ScopeFlow",
+      "aliases": [],
+      "type": "Contractor documentation SaaS",
+      "repository": null,
+      "status": "concept",
+      "priority": 7,
+      "nextMilestone": "Confirm product specification and build first change-order workflow.",
+      "deploymentTarget": "SaaS"
+    },
+    {
+      "name": "OperatorLedger",
+      "aliases": [],
+      "type": "Business operations product",
+      "repository": null,
+      "status": "concept",
+      "priority": 8,
+      "nextMilestone": "Resolve final product scope before development resumes.",
+      "deploymentTarget": null
+    },
+    {
+      "name": "POD Margin Guard",
+      "aliases": [],
+      "type": "Etsy and print-on-demand margin tool",
+      "repository": null,
+      "status": "concept",
+      "priority": 9,
+      "nextMilestone": "Build spreadsheet/workbook validation product before SaaS automation.",
+      "deploymentTarget": "Digital product first"
+    },
+    {
+      "name": "LaunchKit Complete",
+      "aliases": ["ShipKit", "SaaS Starter Kit Pro"],
+      "type": "Developer digital product",
+      "repository": null,
+      "status": "build_package",
+      "priority": 10,
+      "nextMilestone": "Locate final ZIP, validate every asset, and publish product listing.",
+      "deploymentTarget": "Gumroad or equivalent"
+    },
+    {
+      "name": "Level Up",
+      "aliases": [],
+      "type": "SwiftUI fitness application",
+      "repository": null,
+      "status": "in_development",
+      "priority": 11,
+      "nextMilestone": "Locate current source and establish whether the app still builds.",
+      "deploymentTarget": "iOS"
+    }
+  ]
+}
