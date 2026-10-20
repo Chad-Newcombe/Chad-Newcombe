@@ -1,0 +1,76 @@
+{
+  "framework": "50/30/20",
+  "monthly_income": 3500.0,
+  "needs_target": 1750.0,
+  "wants_target": 1050.0,
+  "savings_debt_target": 700.0,
+  "current_needs": 1997.89,
+  "current_wants": 401.14,
+  "current_savings_debt": 0.0,
+  "category_budgets": [
+    {
+      "category": "housing",
+      "bucket": "needs",
+      "current_monthly_avg": 1450.0,
+      "recommended_monthly": 1270.09,
+      "difference": -179.91
+    },
+    {
+      "category": "other",
+      "bucket": "wants",
+      "current_monthly_avg": 283.64,
+      "recommended_monthly": 742.44,
+      "difference": 458.8
+    },
+    {
+      "category": "groceries",
+      "bucket": "needs",
+      "current_monthly_avg": 245.75,
+      "recommended_monthly": 215.26,
+      "difference": -30.49
+    },
+    {
+      "category": "utilities",
+      "bucket": "needs",
+      "current_monthly_avg": 225.25,
+      "recommended_monthly": 197.3,
+      "difference": -27.95
+    },
+    {
+      "category": "dining",
+      "bucket": "wants",
+      "current_monthly_avg": 87.0,
+      "recommended_monthly": 227.73,
+      "difference": 140.73
+    },
+    {
+      "category": "transport",
+      "bucket": "needs",
+      "current_monthly_avg": 60.8,
+      "recommended_monthly": 53.26,
+      "difference": -7.54
+    },
+    {
+      "category": "entertainment",
+      "bucket": "wants",
+      "current_monthly_avg": 25.0,
+      "recommended_monthly": 65.44,
+      "difference": 40.44
+    },
+    {
+      "category": "healthcare",
+      "bucket": "needs",
+      "current_monthly_avg": 16.09,
+      "recommended_monthly": 14.09,
+      "difference": -2.0
+    },
+    {
+      "category": "subscriptions",
+      "bucket": "wants",
+      "current_monthly_avg": 5.5,
+      "recommended_monthly": 14.4,
+      "difference": 8.9
+    }
+  ],
+  "surplus_or_deficit": 1100.97
+}

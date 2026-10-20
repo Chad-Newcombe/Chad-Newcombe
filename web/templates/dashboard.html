@@ -1,0 +1,427 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Finance Analyzer{% endblock %}
+
+{% block content %}
+{% set snap = report.snapshot %}
+{% set bp   = report.budget_plan %}
+{% set av   = report.avalanche_plan %}
+{% set sn   = report.snowball_plan %}
+
+<!-- Header -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+  <div>
+    <h1 class="text-2xl font-bold text-white">Financial Dashboard</h1>
+    <p class="text-slate-400 mt-0.5">
+      {{ snap.analysis_period_start }} → {{ snap.analysis_period_end }}
+      {% if snap.income_source == "projected" %}
+        <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs
+                     bg-amber-500/10 text-amber-400 border border-amber-500/20">
+          Projected Income
+        </span>
+      {% endif %}
+    </p>
+  </div>
+  <a href="/transactions/{{ run_id }}"
+     class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm
+            bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white
+            border border-slate-700 transition-colors">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+    </svg>
+    View All Transactions
+  </a>
+</div>
+
+<!-- Metric Cards -->
+<div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+  {% set metrics = [
+    ("Liquid Assets", snap.total_liquid_assets, "emerald", "$"),
+    ("Credit Card Debt", snap.total_credit_card_debt, "red", "$"),
+    ("Monthly Income", snap.total_monthly_income, "blue", "$"),
+    ("Monthly Expenses", snap.total_monthly_expenses, "amber", "$"),
+    ("Net Cash Flow", snap.net_monthly_cash_flow, "emerald" if snap.net_monthly_cash_flow >= 0 else "red", "$"),
+  ] %}
+  {% for label, value, color, prefix in metrics %}
+  <div class="card p-4">
+    <p class="text-slate-500 text-xs uppercase tracking-wider mb-1">{{ label }}</p>
+    <p class="text-xl font-bold text-{{ color }}-400">
+      {{ prefix }}{{ "{:,.2f}".format(value | abs) }}
+      {% if value < 0 and label == "Net Cash Flow" %}<span class="text-sm font-normal text-red-500">deficit</span>{% endif %}
+    </p>
+    {% if label == "Monthly Income" and snap.income_source == "projected" %}
+    <p class="text-xs text-slate-600 mt-0.5">hist. avg ${{ "{:,.0f}".format(snap.historical_monthly_income) }}</p>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Spending + Budget row -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+
+  <!-- Spending by Category -->
+  <div class="card p-6">
+    <h2 class="font-semibold text-white mb-4">Spending by Category</h2>
+    <div class="flex flex-col sm:flex-row gap-6 items-center">
+      <div class="w-44 h-44 shrink-0">
+        <canvas id="spendingChart"></canvas>
+      </div>
+      <div class="flex-1 w-full">
+        {% for item in snap.spending_by_category[:8] %}
+        <div class="flex items-center justify-between py-1.5 border-b border-slate-800 last:border-0">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full shrink-0"
+                  id="cat-dot-{{ loop.index }}"></span>
+            <span class="text-slate-300 text-sm capitalize">{{ item.category.replace('_',' ') }}</span>
+          </div>
+          <div class="text-right">
+            <span class="text-white text-sm font-medium">${{ "{:,.0f}".format(item.monthly_average) }}/mo</span>
+            <span class="text-slate-600 text-xs ml-2">{{ item.percentage_of_spending }}%</span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- 50/30/20 Budget -->
+  {% if bp %}
+  <div class="card p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="font-semibold text-white">{{ bp.framework }} Budget</h2>
+      <span class="text-slate-500 text-sm">${{ "{:,.0f}".format(bp.monthly_income) }}/mo income</span>
+    </div>
+    {% set buckets = [
+      ("Needs (50%)", bp.current_needs, bp.needs_target, "blue"),
+      ("Wants (30%)", bp.current_wants, bp.wants_target, "purple"),
+      ("Savings / Debt (20%)", bp.current_savings_debt, bp.savings_debt_target, "emerald"),
+    ] %}
+    {% for label, current, target, color in buckets %}
+    {% set pct = [[(current / target * 100) | int, 0] | max, 100] | min %}
+    {% set over = current > target %}
+    <div class="mb-5 last:mb-0">
+      <div class="flex justify-between text-sm mb-1.5">
+        <span class="text-slate-300">{{ label }}</span>
+        <span class="{{ 'text-red-400' if over else 'text-slate-400' }}">
+          ${{ "{:,.0f}".format(current) }} / ${{ "{:,.0f}".format(target) }}
+          {% if over %}<span class="text-red-400 text-xs ml-1">▲ over</span>{% endif %}
+        </span>
+      </div>
+      <div class="h-2.5 bg-slate-800 rounded-full overflow-hidden">
+        <div class="h-full rounded-full transition-all {{ 'bg-red-500' if over else 'bg-' + color + '-500' }}"
+             style="width: {{ pct }}%"></div>
+      </div>
+    </div>
+    {% endfor %}
+
+    {% set surplus = bp.surplus_or_deficit %}
+    <div class="mt-4 pt-4 border-t border-slate-800 flex justify-between text-sm">
+      <span class="text-slate-500">Unallocated surplus</span>
+      <span class="{{ 'text-emerald-400' if surplus >= 0 else 'text-red-400' }} font-semibold">
+        {{ '+' if surplus >= 0 else '' }}${{ "{:,.2f}".format(surplus) }}
+      </span>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+
+<!-- Debt Payoff -->
+{% if av or sn %}
+<div class="card p-6 mb-8">
+  <h2 class="font-semibold text-white mb-4">Debt Payoff Comparison</h2>
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+    {% for plan, label, desc in [(av, "Avalanche", "Highest APR first — saves the most interest"),
+                                  (sn, "Snowball",  "Smallest balance first — quickest early wins")] %}
+    {% if plan %}
+    <div class="bg-slate-800/60 rounded-xl p-4 border border-slate-700/50">
+      <div class="flex items-start justify-between mb-3">
+        <div>
+          <p class="font-semibold text-white">{{ label }}</p>
+          <p class="text-xs text-slate-500 mt-0.5">{{ desc }}</p>
+        </div>
+        {% if av and sn and plan.strategy == "avalanche" and av.total_interest_paid <= sn.total_interest_paid %}
+        <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+          Recommended
+        </span>
+        {% endif %}
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <p class="text-slate-500 text-xs">Payoff time</p>
+          <p class="text-white font-bold text-lg">{{ plan.total_months }} mo</p>
+        </div>
+        <div>
+          <p class="text-slate-500 text-xs">Total interest</p>
+          <p class="text-red-400 font-bold text-lg">${{ "{:,.0f}".format(plan.total_interest_paid) }}</p>
+        </div>
+        <div>
+          <p class="text-slate-500 text-xs">Monthly budget</p>
+          <p class="text-slate-200 font-semibold">${{ "{:,.0f}".format(plan.monthly_payment_budget) }}</p>
+        </div>
+        <div>
+          <p class="text-slate-500 text-xs">Payoff order</p>
+          <p class="text-slate-300 text-xs mt-1">{{ plan.payoff_order | join(' → ') }}</p>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+    {% endfor %}
+  </div>
+
+  <!-- 12-month payoff chart -->
+  {% set best = av or sn %}
+  {% if best %}
+  <div>
+    <p class="text-sm text-slate-500 mb-3">12-Month Payment Breakdown ({{ best.strategy.title() }})</p>
+    <div style="height:220px"><canvas id="payoffChart"></canvas></div>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+<!-- Credit card summary -->
+{% if snap.credit_cards %}
+<div class="card p-6 mb-8">
+  <h2 class="font-semibold text-white mb-4">Credit Card Balances</h2>
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="text-left text-slate-500 text-xs uppercase tracking-wider border-b border-slate-800">
+          <th class="pb-2 pr-4">Account</th>
+          <th class="pb-2 pr-4">Balance</th>
+          <th class="pb-2 pr-4">APR</th>
+          <th class="pb-2 pr-4">Min Payment</th>
+          <th class="pb-2">Utilization</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for cc in snap.credit_cards %}
+        {% set util = (cc.current_balance / cc.credit_limit * 100) if cc.credit_limit else none %}
+        <tr class="border-b border-slate-800/50 last:border-0">
+          <td class="py-3 pr-4 text-white font-medium">{{ cc.account_name }}</td>
+          <td class="py-3 pr-4 text-red-400 font-semibold">${{ "{:,.2f}".format(cc.current_balance) }}</td>
+          <td class="py-3 pr-4 text-slate-300">{{ "{:.2f}".format(cc.annual_interest_rate * 100) }}%</td>
+          <td class="py-3 pr-4 text-slate-300">${{ "{:,.2f}".format(cc.minimum_payment) }}</td>
+          <td class="py-3">
+            {% if util is not none %}
+            <div class="flex items-center gap-2">
+              <div class="w-24 h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                <div class="h-full rounded-full {{ 'bg-red-500' if util > 70 else 'bg-amber-500' if util > 30 else 'bg-emerald-500' }}"
+                     style="width:{{ [util, 100] | min }}%"></div>
+              </div>
+              <span class="text-slate-400 text-xs">{{ "{:.0f}".format(util) }}%</span>
+            </div>
+            {% else %}
+            <span class="text-slate-600">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<!-- Executive Summary -->
+{% if report.executive_summary %}
+<div class="card p-6 mb-8">
+  <h2 class="font-semibold text-white mb-3 flex items-center gap-2">
+    <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+    </svg>
+    Executive Summary
+  </h2>
+  <div class="text-slate-300 leading-relaxed whitespace-pre-line text-sm">{{ report.executive_summary }}</div>
+</div>
+{% endif %}
+
+<!-- Top Recommendations -->
+{% if report.top_recommendations %}
+<div class="card p-6 mb-8">
+  <h2 class="font-semibold text-white mb-4 flex items-center gap-2">
+    <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+    </svg>
+    Top Recommendations
+  </h2>
+  <ol class="space-y-3">
+    {% for rec in report.top_recommendations %}
+    <li class="flex gap-3">
+      <span class="w-6 h-6 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-bold
+                   flex items-center justify-center shrink-0 mt-0.5 border border-emerald-500/20">
+        {{ loop.index }}
+      </span>
+      <span class="text-slate-300 text-sm leading-relaxed">{{ rec }}</span>
+    </li>
+    {% endfor %}
+  </ol>
+</div>
+{% endif %}
+
+<!-- Monthly Action Plans -->
+{% if report.monthly_action_plans %}
+<div class="mb-8">
+  <h2 class="font-semibold text-white mb-4 text-xl">Monthly Action Plans</h2>
+  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+    {% for plan in report.monthly_action_plans %}
+    <div class="card p-5">
+      <h3 class="font-bold text-white mb-3 text-lg">{{ plan.month }}</h3>
+
+      {% if plan.priority_actions %}
+      <div class="mb-3">
+        <p class="text-xs text-slate-500 uppercase tracking-wider mb-2">Priority Actions</p>
+        <ul class="space-y-1.5">
+          {% for action in plan.priority_actions %}
+          <li class="flex gap-2 text-sm text-slate-300">
+            <svg class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+            {{ action }}
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      {% if plan.debt_payments %}
+      <div class="mb-3">
+        <p class="text-xs text-slate-500 uppercase tracking-wider mb-2">Debt Payments</p>
+        {% for account, amount in plan.debt_payments.items() %}
+        <div class="flex justify-between text-sm py-1 border-b border-slate-800 last:border-0">
+          <span class="text-slate-300">{{ account }}</span>
+          <span class="text-white font-semibold">${{ "{:,.2f}".format(amount) }}</span>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% if plan.savings_target > 0 %}
+      <div class="mb-3 flex justify-between text-sm">
+        <span class="text-slate-500">Savings target</span>
+        <span class="text-emerald-400 font-semibold">${{ "{:,.2f}".format(plan.savings_target) }}</span>
+      </div>
+      {% endif %}
+
+      {% if plan.key_milestones %}
+      <div>
+        <p class="text-xs text-slate-500 uppercase tracking-wider mb-2">Milestones</p>
+        {% for m in plan.key_milestones %}
+        <p class="text-xs text-slate-400 flex gap-1.5 mb-1">
+          <span class="text-amber-400">★</span> {{ m }}
+        </p>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- Charts JS -->
+<script>
+const CAT_COLORS = {
+  income:       '#10b981',
+  housing:      '#6366f1',
+  groceries:    '#f59e0b',
+  dining:       '#ef4444',
+  utilities:    '#3b82f6',
+  transport:    '#8b5cf6',
+  entertainment:'#ec4899',
+  healthcare:   '#14b8a6',
+  clothing:     '#f97316',
+  debt_payment: '#dc2626',
+  savings:      '#22c55e',
+  subscriptions:'#a855f7',
+  other:        '#6b7280',
+};
+
+// Apply category dot colors
+document.querySelectorAll('[id^="cat-dot-"]').forEach((el, i) => {
+  const spending = {{ snap.spending_by_category | tojson }};
+  if (spending[i]) el.style.background = CAT_COLORS[spending[i].category] || '#6b7280';
+});
+
+// Spending donut
+(function() {
+  const spending = {{ snap.spending_by_category | tojson }};
+  const ctx = document.getElementById('spendingChart');
+  if (!ctx || !spending.length) return;
+  new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: spending.map(d => d.category.replace(/_/g, ' ')),
+      datasets: [{
+        data: spending.map(d => d.monthly_average),
+        backgroundColor: spending.map(d => CAT_COLORS[d.category] || '#6b7280'),
+        borderWidth: 0,
+        hoverOffset: 6,
+      }]
+    },
+    options: {
+      cutout: '70%',
+      plugins: { legend: { display: false }, tooltip: {
+        callbacks: { label: ctx => ` $${ctx.raw.toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0})}/mo` }
+      }},
+      animation: { animateScale: true },
+    }
+  });
+})();
+
+// Payoff bar chart (12-month breakdown)
+(function() {
+  const scheduleRaw = {{ (av or sn).payoff_schedule | tojson if (av or sn) else '[]' }};
+  const ctx = document.getElementById('payoffChart');
+  if (!ctx || !scheduleRaw.length) return;
+
+  // Group by month_number, sum principal and interest
+  const byMonth = {};
+  scheduleRaw.forEach(e => {
+    if (e.month_number > 12) return;
+    if (!byMonth[e.month_number]) byMonth[e.month_number] = {principal: 0, interest: 0};
+    byMonth[e.month_number].principal += e.principal_paid;
+    byMonth[e.month_number].interest += e.interest_paid;
+  });
+
+  const months = Object.keys(byMonth).map(Number).sort((a,b)=>a-b);
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: months.map(m => `Mo ${m}`),
+      datasets: [
+        {
+          label: 'Principal',
+          data: months.map(m => +byMonth[m].principal.toFixed(2)),
+          backgroundColor: '#10b981',
+          borderRadius: 4,
+          stack: 'total',
+        },
+        {
+          label: 'Interest',
+          data: months.map(m => +byMonth[m].interest.toFixed(2)),
+          backgroundColor: '#ef4444',
+          borderRadius: 4,
+          stack: 'total',
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: { stacked: true, grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#64748b' } },
+        y: { stacked: true, grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#64748b',
+             callback: v => '$' + v.toLocaleString() } }
+      },
+      plugins: { legend: { labels: { color: '#94a3b8' } },
+        tooltip: { callbacks: { label: c => ` ${c.dataset.label}: $${c.raw.toLocaleString()}` } }
+      }
+    }
+  });
+})();
+</script>
+{% endblock %}

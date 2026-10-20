@@ -10,6 +10,7 @@ dist/
 build/
 .ruff_cache/
 .mypy_cache/
+.pytest_cache/
 
 # Outputs (generated products — too large for version control)
 outputs/*

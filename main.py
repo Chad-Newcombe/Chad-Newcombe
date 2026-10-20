@@ -9,6 +9,7 @@ Usage:
 """
 
 from __future__ import annotations
+from pathlib import Path
 from typing import Annotated
 import typer
 from rich.console import Console
@@ -75,6 +76,141 @@ def create(
     except Exception as exc:
         console.print(f"\n[red]Error:[/red] {exc}")
         raise typer.Exit(code=1)
+
+
+@app.command()
+def analyze(
+    statements: Annotated[
+        list[Path],
+        typer.Argument(help="CSV statement files exported from your bank or credit card."),
+    ],
+    credit_card: Annotated[
+        list[str] | None,
+        typer.Option(
+            "--cc", "-c",
+            help=(
+                'Credit card config as "name:APR:min_payment" or '
+                '"name:APR:min_payment:balance" e.g. "Visa:21.99:25:2400"'
+            ),
+        ),
+    ] = None,
+    monthly_budget: Annotated[
+        float | None,
+        typer.Option(
+            "--budget", "-b",
+            help="Total monthly dollars available for debt repayment. Auto-calculated if omitted.",
+        ),
+    ] = None,
+    income: Annotated[
+        float | None,
+        typer.Option(
+            "--income", "-i",
+            help=(
+                "Your projected monthly take-home income. "
+                "If omitted, the historical average from your statements is used. "
+                "Use this when your income has recently changed or statements don't "
+                "reflect your current pay (e.g. new job, raise, side income)."
+            ),
+        ),
+    ] = None,
+    api_key: Annotated[
+        str | None,
+        typer.Option("--api-key", "-k", help="Anthropic API key.", envvar="ANTHROPIC_API_KEY"),
+    ] = None,
+) -> None:
+    """
+    Analyze bank and credit card statements to produce a personal finance plan.
+
+    \b
+    Example:
+        python main.py analyze checking.csv visa.csv amex.csv \\
+            --cc "Visa:21.99:25" --cc "Amex:18.99:35:3200" \\
+            --income 4500 --budget 600
+
+    \b
+    Outputs saved to outputs/finance-YYYY-MM-DD/:
+        finance_report.md  — human-readable summary
+        report.json        — complete structured data
+        transactions.json  — categorized transactions
+        debt_payoff.json   — avalanche + snowball schedules
+        budget.json        — 50/30/20 budget plan
+    """
+    # Validate statement files
+    for path in statements:
+        if not path.exists():
+            console.print(f"[red]File not found:[/red] {path}")
+            raise typer.Exit(code=1)
+
+    # Parse credit card configs from "name:APR:min_payment[:balance[:limit]]"
+    cc_configs: list[dict] = []
+    for cc_str in (credit_card or []):
+        parts = cc_str.split(":")
+        if len(parts) < 3:
+            console.print(f"[red]Invalid --cc format:[/red] {cc_str!r}  (expected name:APR:min_payment)")
+            raise typer.Exit(code=1)
+        cfg: dict = {
+            "name": parts[0].strip(),
+            "apr": float(parts[1]),
+            "min_payment": float(parts[2]),
+        }
+        if len(parts) >= 4:
+            cfg["balance"] = float(parts[3])
+        if len(parts) >= 5:
+            cfg["credit_limit"] = float(parts[4])
+        cc_configs.append(cfg)
+
+    from src.finance_orchestrator import FinanceOrchestrator
+
+    console.print("\n[bold cyan]Personal Finance Analyzer[/bold cyan]")
+    console.print(f"  Statements: {', '.join(str(s) for s in statements)}")
+    if cc_configs:
+        console.print(f"  Credit cards: {', '.join(c['name'] for c in cc_configs)}")
+    if income:
+        console.print(f"  Projected income: ${income:,.2f}/mo")
+    else:
+        console.print("  Income: using historical average from statements")
+    if monthly_budget:
+        console.print(f"  Monthly debt budget: ${monthly_budget:,.2f}")
+    console.print()
+
+    try:
+        orchestrator = FinanceOrchestrator(api_key=api_key)
+        orchestrator.analyze(
+            statement_files=[str(s) for s in statements],
+            credit_card_configs=cc_configs,
+            monthly_payment_budget=monthly_budget,
+            projected_income=income,
+        )
+    except KeyboardInterrupt:
+        console.print("\n[yellow]Interrupted.[/yellow]")
+    except Exception as exc:
+        console.print(f"\n[red]Error:[/red] {exc}")
+        raise typer.Exit(code=1)
+
+
+@app.command()
+def serve(
+    host: Annotated[str, typer.Option("--host", help="Host to bind to.")] = "127.0.0.1",
+    port: Annotated[int, typer.Option("--port", "-p", help="Port to listen on.")] = 5000,
+    debug: Annotated[bool, typer.Option("--debug", help="Enable Flask debug mode.")] = False,
+) -> None:
+    """
+    Start the personal finance web dashboard.
+
+    \b
+    Example:
+        python main.py serve
+        python main.py serve --port 8080
+        python main.py serve --host 0.0.0.0 --port 5000
+    """
+    from web.app import create_app
+
+    flask_app = create_app()
+    console.print()
+    console.print("[bold cyan]Personal Finance Dashboard[/bold cyan]")
+    console.print(f"  Open [underline]http://{host}:{port}[/underline] in your browser")
+    console.print("  Press Ctrl+C to stop\n")
+    flask_app.run(host=host, port=port, debug=debug, use_reloader=False)
 
 
 @app.command()

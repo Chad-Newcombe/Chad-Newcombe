@@ -1,0 +1,308 @@
+[
+  {
+    "date": "2026-03-01",
+    "description": "PAYROLL DIRECT DEPOSIT ACME CORP",
+    "amount": 3500.0,
+    "balance": 4200.0,
+    "source_file": "checking.csv",
+    "category": "income",
+    "is_transfer": false
+  },
+  {
+    "date": "2026-03-02",
+    "description": "RENT PAYMENT GREENWOOD APTS",
+    "amount": -1450.0,
+    "balance": 2750.0,
+    "source_file": "checking.csv",
+    "category": "housing",
+    "is_transfer": false
+  },
+  {
+    "date": "2026-03-03",
+    "description": "WHOLE FOODS MARKET",
+    "amount": -127.43,
+    "balance": 2622.57,
+    "source_file": "checking.csv",
+    "category": "groceries",
+    "is_transfer": false
+  },
+  {
+    "date": "2026-03-05",
+    "description": "SHELL GAS STATION",
+    "amount": -48.2,
+    "balance": 2574.37,
+    "source_file": "checking.csv",
+    "category": "transport",
+    "is_transfer": false
+  },
+  {
+    "date": "2026-03-07",
+    "description": "NETFLIX.COM",
+    "amount": -15.99,
+    "balance": 2558.38,
+    "source_file": "checking.csv",
+    "category": "entertainment",
+    "is_transfer": false
+  },
+  {
+    "date": "2026-03-09",
+    "description": "PG&E UTILITY",
+    "amount": -142.0,
+    "balance": 2416.38,
+    "source_file": "checking.csv",
+    "category": "utilities",
+    "is_transfer": false
+  },
+  {
+    "date": "2026-03-12",
+    "description": "CHIPOTLE",
+    "amount": -14.85,
+    "balance": 2401.53,
+    "source_file": "checking.csv",
+    "category": "dining",
+    "is_transfer": false
+  },
+  {
+    "date": "2026-03-14",
+    "description": "PAYMENT TO VISA THANK YOU",
+    "amount": -300.0,
+    "balance": 2101.53,
+    "source_file": "checking.csv",
+    "category": "debt_payment",
+    "is_transfer": true
+  },
+  {
+    "date": "2026-03-16",
+    "description": "TRADER JOES",
+    "amount": -88.1,
+    "balance": 2013.43,
+    "source_file": "checking.csv",
+    "category": "groceries",
+    "is_transfer": false
+  },
+  {
+    "date": "2026-03-18",
+    "description": "SPOTIFY",
+    "amount": -10.99,
+    "balance": 2002.44,
+    "source_file": "checking.csv",
+    "category": "subscriptions",
+    "is_transfer": false
+  },
+  {
+    "date": "2026-03-20",
+    "description": "UBER TRIP",
+    "amount": -22.4,
+    "balance": 1980.04,
+    "source_file": "checking.csv",
+    "category": "transport",
+    "is_transfer": false
+  },
+  {
+    "date": "2026-03-25",
+    "description": "AT&T WIRELESS",
+    "amount": -85.0,
+    "balance": 1895.04,
+    "source_file": "checking.csv",
+    "category": "utilities",
+    "is_transfer": false
+  },
+  {
+    "date": "2026-03-28",
+    "description": "CVS PHARMACY",
+    "amount": -32.18,
+    "balance": 1862.86,
+    "source_file": "checking.csv",
+    "category": "healthcare",
+    "is_transfer": false
+  },
+  {
+    "date": "2026-04-01",
+    "description": "PAYROLL DIRECT DEPOSIT ACME CORP",
+    "amount": 3500.0,
+    "balance": 5362.86,
+    "source_file": "checking.csv",
+    "category": "income",
+    "is_transfer": false
+  },
+  {
+    "date": "2026-04-02",
+    "description": "RENT PAYMENT GREENWOOD APTS",
+    "amount": -1450.0,
+    "balance": 3912.86,
+    "source_file": "checking.csv",
+    "category": "housing",
+    "is_transfer": false
+  },
+  {
+    "date": "2026-04-04",
+    "description": "SAFEWAY",
+    "amount": -156.22,
+    "balance": 3756.64,
+    "source_file": "checking.csv",
+    "category": "groceries",
+    "is_transfer": false
+  },
+  {
+    "date": "2026-04-06",
+    "description": "SHELL GAS STATION",
+    "amount": -51.0,
+    "balance": 3705.64,
+    "source_file": "checking.csv",
+    "category": "transport",
+    "is_transfer": false
+  },
+  {
+    "date": "2026-04-08",
+    "description": "AMC THEATRES",
+    "amount": -34.0,
+    "balance": 3671.64,
+    "source_file": "checking.csv",
+    "category": "entertainment",
+    "is_transfer": false
+  },
+  {
+    "date": "2026-04-10",
+    "description": "PG&E UTILITY",
+    "amount": -138.5,
+    "balance": 3533.14,
+    "source_file": "checking.csv",
+    "category": "utilities",
+    "is_transfer": false
+  },
+  {
+    "date": "2026-04-14",
+    "description": "PAYMENT TO VISA THANK YOU",
+    "amount": -300.0,
+    "balance": 3233.14,
+    "source_file": "checking.csv",
+    "category": "debt_payment",
+    "is_transfer": true
+  },
+  {
+    "date": "2026-04-15",
+    "description": "OLIVE GARDEN",
+    "amount": -62.3,
+    "balance": 3170.84,
+    "source_file": "checking.csv",
+    "category": "dining",
+    "is_transfer": false
+  },
+  {
+    "date": "2026-04-22",
+    "description": "AT&T WIRELESS",
+    "amount": -85.0,
+    "balance": 3085.84,
+    "source_file": "checking.csv",
+    "category": "utilities",
+    "is_transfer": false
+  },
+  {
+    "date": "2026-04-26",
+    "description": "WHOLE FOODS MARKET",
+    "amount": -119.74,
+    "balance": 2966.1,
+    "source_file": "checking.csv",
+    "category": "groceries",
+    "is_transfer": false
+  },
+  {
+    "date": "2026-03-04",
+    "description": "AMAZON MARKETPLACE",
+    "amount": -64.99,
+    "balance": null,
+    "source_file": "visa.csv",
+    "category": "other",
+    "is_transfer": false
+  },
+  {
+    "date": "2026-03-08",
+    "description": "STARBUCKS",
+    "amount": -6.75,
+    "balance": null,
+    "source_file": "visa.csv",
+    "category": "dining",
+    "is_transfer": false
+  },
+  {
+    "date": "2026-03-11",
+    "description": "BEST BUY ELECTRONICS",
+    "amount": -219.99,
+    "balance": null,
+    "source_file": "visa.csv",
+    "category": "other",
+    "is_transfer": false
+  },
+  {
+    "date": "2026-03-15",
+    "description": "PAYMENT THANK YOU",
+    "amount": 300.0,
+    "balance": null,
+    "source_file": "visa.csv",
+    "category": "debt_payment",
+    "is_transfer": true
+  },
+  {
+    "date": "2026-03-19",
+    "description": "TARGET",
+    "amount": -83.4,
+    "balance": null,
+    "source_file": "visa.csv",
+    "category": "other",
+    "is_transfer": false
+  },
+  {
+    "date": "2026-03-23",
+    "description": "DOORDASH",
+    "amount": -38.65,
+    "balance": null,
+    "source_file": "visa.csv",
+    "category": "dining",
+    "is_transfer": false
+  },
+  {
+    "date": "2026-04-03",
+    "description": "AMAZON MARKETPLACE",
+    "amount": -42.1,
+    "balance": null,
+    "source_file": "visa.csv",
+    "category": "other",
+    "is_transfer": false
+  },
+  {
+    "date": "2026-04-09",
+    "description": "STARBUCKS",
+    "amount": -7.25,
+    "balance": null,
+    "source_file": "visa.csv",
+    "category": "dining",
+    "is_transfer": false
+  },
+  {
+    "date": "2026-04-13",
+    "description": "PAYMENT THANK YOU",
+    "amount": 300.0,
+    "balance": null,
+    "source_file": "visa.csv",
+    "category": "debt_payment",
+    "is_transfer": true
+  },
+  {
+    "date": "2026-04-17",
+    "description": "HOME DEPOT",
+    "amount": -156.8,
+    "balance": null,
+    "source_file": "visa.csv",
+    "category": "other",
+    "is_transfer": false
+  },
+  {
+    "date": "2026-04-21",
+    "description": "DOORDASH",
+    "amount": -44.2,
+    "balance": null,
+    "source_file": "visa.csv",
+    "category": "dining",
+    "is_transfer": false
+  }
+]
